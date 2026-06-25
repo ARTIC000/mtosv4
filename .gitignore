@@ -1,0 +1,8 @@
+.next
+.next-runtime
+node_modules
+.env
+.env.local
+dist
+coverage
+*.log

@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+}
+
+enum SyncRunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum AiArtifactType {
+  WORKSPACE_SNAPSHOT
+  EXECUTIVE_BRIEF
+  CLIENT_SUMMARY
+  CONNECTOR_DIAGNOSIS
+  POST_MEETING
+}
+
+model User {
+  id             String                  @id @default(cuid())
+  name           String
+  email          String                  @unique
+  passwordHash   String
+  role           UserRole                @default(MANAGER)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  sessions       Session[]
+  oauthTokens    OAuthToken[]
+  syncedClients  SyncedClient[]
+  syncRuns       SyncRun[]
+  aiArtifacts    AiArtifact[]
+  postMeetingActionSyncs PostMeetingActionSync[]
+  mtosScoreSnapshots MtosScoreSnapshot[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OAuthToken {
+  id                String   @id @default(cuid())
+  provider          String
+  accountEmail      String?
+  accessToken       String
+  refreshToken      String?
+  tokenType         String?
+  scope             String?
+  workspaceId       String?
+  workspaceName     String?
+  expiresAt         DateTime?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+}
+
+model Client {
+  id             String             @id
+  name           String
+  industry       String?
+  location       String?
+  initials       String?
+  avatarStart    String?
+  avatarEnd      String?
+  accountManager String
+  health         Int?
+  trend          String?
+  sentiment      String?
+  tenure         String?
+  mrr            String?
+  nextTouch      String?
+  openActions    Int               @default(0)
+  riskNote       String?
+  context        String?
+  clickupTaskId  String?           @unique
+  rawPayload     Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  syncedBy       SyncedClient[]
+  kpis           ClientKpi[]
+  churnSignals   ClientChurnSignal[]
+  goals          ClientGoal[]
+  activities     ClientActivity[]
+  sourceLinks    IntegrationLink[]
+  aiArtifacts    AiArtifact[]
+  postMeetingActionSyncs PostMeetingActionSync[]
+  mtosScoreSnapshots MtosScoreSnapshot[]
+}
+
+model SyncedClient {
+  userId     String
+  clientId   String
+  syncedAt   DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@id([userId, clientId])
+}
+
+model ClientKpi {
+  id       String  @id @default(cuid())
+  clientId String
+  label    String
+  value    String
+  delta    String?
+  good     Boolean @default(false)
+  client   Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model ClientChurnSignal {
+  id       String @id @default(cuid())
+  clientId String
+  text     String
+  color    String
+  client   Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model ClientGoal {
+  id       String @id @default(cuid())
+  clientId String
+  text     String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model ClientActivity {
+  id       String @id @default(cuid())
+  clientId String
+  text     String
+  meta     String
+  dot      String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model IntegrationLink {
+  id         String   @id @default(cuid())
+  clientId    String
+  provider    String
+  state       String
+  profileName String?
+  confidence  Int?
+  metadata    Json?
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, provider])
+}
+
+model SyncRun {
+  id            String        @id @default(cuid())
+  provider      String
+  status        SyncRunStatus @default(PENDING)
+  total         Int           @default(0)
+  completed     Int           @default(0)
+  selectedIds   String[]
+  errorMessage  String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AiArtifact {
+  id            String         @id @default(cuid())
+  type          AiArtifactType
+  title         String
+  taskType      String
+  routerModel   String
+  phase         String
+  provider      String?
+  model         String?
+  promptTask    String
+  outputText    String
+  structuredData Json?
+  metadata      Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  userId        String
+  clientId      String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client        Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clientId, type])
+}
+
+model PostMeetingActionSync {
+  id             String   @id @default(cuid())
+  actionHash     String
+  department     String
+  owner          String
+  dueDate        String
+  task           String
+  clickupTaskId  String
+  clickupTaskName String
+  clickupStatus  String?
+  clickupAssignee String?
+  clickupDueDate  String?
+  lastSyncedAt   DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  userId         String
+  clientId       String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clientId, actionHash])
+  @@unique([userId, clickupTaskId])
+}
+
+model MtosScoreSnapshot {
+  id              String   @id @default(cuid())
+  health          Int
+  risk            Int
+  upsellReadiness Int
+  factors         Json?
+  createdAt       DateTime @default(now())
+  userId          String
+  clientId        String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([userId, clientId, createdAt])
+}

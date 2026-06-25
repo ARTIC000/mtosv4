@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #0a0e16;
+  color: #eef2f8;
+}
+
+body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(123, 104, 238, 0.14), transparent 24%),
+    radial-gradient(circle at top left, rgba(45, 212, 191, 0.08), transparent 22%),
+    #0a0e16;
+}
+
+.glass-panel {
+  background: rgba(13, 19, 32, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.mt-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(13, 19, 32, 0.78);
+  border-radius: 16px;
+}
+
+.mt-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #8b94a3;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.purple-gradient {
+  background: linear-gradient(135deg, #7b68ee, #18c7ff);
+}
+
+.teal-gradient {
+  background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+}
+
+.clickup-gradient {
+  background: linear-gradient(135deg, #ff02f0, #7b68ee, #18c7ff);
+}
+
+.scroll-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
