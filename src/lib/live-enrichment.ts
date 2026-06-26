@@ -299,7 +299,7 @@ async function loadGoogleAdsAccounts() {
   if (!accessToken || !developerToken) return [] as GoogleAdsAccount[];
 
   const accessible = await googleFetchJson<{ resourceNames?: string[] }>(
-    "https://googleads.googleapis.com/v19/customers:listAccessibleCustomers",
+    "https://googleads.googleapis.com/v21/customers:listAccessibleCustomers",
     accessToken,
     { headers: { "developer-token": developerToken } },
   );
@@ -323,7 +323,7 @@ async function loadGoogleAdsAccounts() {
           }>;
         }>
       >(
-        `https://googleads.googleapis.com/v19/customers/${customerId}/googleAds:searchStream`,
+        `https://googleads.googleapis.com/v21/customers/${customerId}/googleAds:searchStream`,
         accessToken,
         {
           method: "POST",
